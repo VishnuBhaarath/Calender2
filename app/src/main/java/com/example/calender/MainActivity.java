@@ -17,6 +17,7 @@ import android.widget.CalendarView;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,6 +27,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -41,9 +43,10 @@ public class MainActivity extends AppCompatActivity {
     private Databasehelper myDb;
     private ListView listView;
     private long n;
-    private Button button;
+    private Button button,btadn;
     private String eventdetails,Date;
     public String selectedDate;
+    private RelativeLayout relativeLayout;
 
 
     SQLiteDatabase sqLiteDatabase;
@@ -52,51 +55,34 @@ public class MainActivity extends AppCompatActivity {
     private TextView mDisplayDate;
     private DatePickerDialog.OnDateSetListener mDateSetListener;
     private long m;
+    ArrayAdapter adapter;
+    ArrayList<String> list;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         myDb = new Databasehelper(this);
         date_view=(TextView)findViewById(R.id.dateview);
-        button=(Button)findViewById(R.id.btadd);
+        relativeLayout=(RelativeLayout)findViewById(R.id.layout);
+        relativeLayout.setVisibility(View.INVISIBLE);
+        button=(Button)findViewById(R.id.btsave);
+        btadn=(Button)findViewById(R.id.btadd);
         editText=(EditText)findViewById(R.id.entertheevents);
         listView=(ListView)findViewById(R.id.listview);
-        final ArrayList<String> list=new ArrayList<>();
-        final ArrayAdapter adapter=new ArrayAdapter(this,android.R.layout.simple_list_item_1,list);
+        list=new ArrayList<>();
+       adapter=new ArrayAdapter(this,android.R.layout.simple_list_item_1,list);
         listView.setAdapter(adapter);
         eventdetails=editText.getText().toString().trim();
+        Selectdate();
         calendarView=(CalendarView)findViewById(R.id.calender);
         calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
             public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
                 Date =dayOfMonth+"-"+(month+1)+"-"+year;
-                selectedDate = Integer.toString(dayOfMonth) + Integer.toString(month) + Integer.toString(year);
+                selectedDate = Integer.toString(dayOfMonth) + Integer.toString(month+1) + Integer.toString(year);
                 date_view.setText(Date);
-                DatabaseReference myref=FirebaseDatabase.getInstance().getReference().child("ALLEVENTS").child(selectedDate);
-                myref.addValueEventListener(new ValueEventListener() {
+                add();
 
-
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        list.clear();
-                         m=dataSnapshot.getChildrenCount();
-                         n=m;
-                        for(DataSnapshot snapshot : dataSnapshot.getChildren()){
-                            list.add(snapshot.getValue().toString());
-
-                            String value = snapshot.getValue(String.class);
-                            Log.d(TAG, "Value is: " + m);
-
-                        }
-                        adapter.notifyDataSetChanged();
-
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                        Log.w(TAG, "Failed to read value.", databaseError.toException());
-
-                    }
-                });
             }
         });
         button.setOnClickListener(new View.OnClickListener() {
@@ -109,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
                     FirebaseDatabase.getInstance().getReference().child("ALLEVENTS").child(selectedDate).child("Event " + n).setValue(editText.getText().toString().trim());
                 }
                 editText.setText(" ");
+                relativeLayout.setVisibility(View.INVISIBLE);
             }
         });
         mDisplayDate = (TextView) findViewById(R.id.displaydate);
@@ -152,8 +139,48 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
+        btadn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                relativeLayout.setVisibility(View.VISIBLE);
+            }
+        });
 
     }
+    //Intializing selected date at the begining as the current date
+    public void Selectdate(){
+        DateFormat df = new SimpleDateFormat("ddMyyyy");
+        Date dateobj = new Date();
+        n=0;
+        selectedDate= df.format(dateobj);
+        add();
+    }
+  public void add(){
+      DatabaseReference myref=FirebaseDatabase.getInstance().getReference().child("ALLEVENTS").child(selectedDate);
+      myref.addValueEventListener(new ValueEventListener() {
 
+
+          @Override
+          public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+              list.clear();
+              m=dataSnapshot.getChildrenCount();
+              n=m;
+              for(DataSnapshot snapshot : dataSnapshot.getChildren()){
+                  list.add(snapshot.getValue().toString());
+
+                  String value = snapshot.getValue(String.class);
+                  Log.d(TAG, "Value is: " + m);
+
+              }
+              adapter.notifyDataSetChanged();
+
+          }
+          @Override
+          public void onCancelled(@NonNull DatabaseError databaseError) {
+              Log.w(TAG, "Failed to read value.", databaseError.toException());
+
+          }
+      });
+  }
 }
 
