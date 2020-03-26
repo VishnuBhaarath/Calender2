@@ -31,11 +31,12 @@ public class MainActivity extends AppCompatActivity {
     private EditText editText;
     private Databasehelper myDb;
     private ListView listView;
-    private int n;
+    private long n;
     private Button button;
-   private String eventdetails,Date;
-   public String selectedDate;
+    private String eventdetails,Date;
+    public String selectedDate;
     SQLiteDatabase sqLiteDatabase;
+    private long m;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
                 // index is start with 0
-                 Date
+                Date
                         = dayOfMonth + "-"
                         + (month + 1) + "-" + year;
                 selectedDate = Integer.toString(year) + Integer.toString(month) + Integer.toString(dayOfMonth);
@@ -68,10 +69,13 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         list.clear();
+                         m=dataSnapshot.getChildrenCount();
+                         n=m;
                         for(DataSnapshot snapshot : dataSnapshot.getChildren()){
                             list.add(snapshot.getValue().toString());
+
                             String value = snapshot.getValue(String.class);
-                            Log.d(TAG, "Value is: " + value);
+                            Log.d(TAG, "Value is: " + m);
 
                         }
                         adapter.notifyDataSetChanged();
@@ -91,18 +95,21 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-      button.setOnClickListener(new View.OnClickListener() {
-          @Override
-          public void onClick(View v) {
-              n=n+1;
-              FirebaseDatabase.getInstance().getReference().child("ALLEVENTS").child(selectedDate).child("Event "+ n).setValue(editText.getText().toString().trim());
-              editText.setText(" ");
-          }
-      });
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(editText.getText().toString().trim().equals("")){
+                    Toast.makeText(MainActivity.this,"Enter event",Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    FirebaseDatabase.getInstance().getReference().child("ALLEVENTS").child(selectedDate).child("Event " + n).setValue(editText.getText().toString().trim());
+                }
+                editText.setText(" ");
+            }
+        });
 
 
     }
 
-    }
-
+}
 
