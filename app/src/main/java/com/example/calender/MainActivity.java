@@ -2,14 +2,19 @@ package com.example.calender;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -47,11 +52,8 @@ public class MainActivity extends AppCompatActivity {
     private String eventdetails,Date;
     public String selectedDate;
     private RelativeLayout relativeLayout;
-
-
-    SQLiteDatabase sqLiteDatabase;
+    private Toolbar toolbar;
     private static final String TAG = "MainActivity";
-
     private TextView mDisplayDate;
     private DatePickerDialog.OnDateSetListener mDateSetListener;
     private long m;
@@ -61,6 +63,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        toolbar=(Toolbar)findViewById(R.id.appbar);
+        setSupportActionBar(toolbar);
         myDb = new Databasehelper(this);
         date_view=(TextView)findViewById(R.id.dateview);
         relativeLayout=(RelativeLayout)findViewById(R.id.layout);
@@ -147,6 +151,25 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.example_menu,menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+
+            case R.id.item2:
+                startActivity(new Intent(MainActivity.this,detailedview.class));
+                return true;
+
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
     //Intializing selected date at the begining as the current date
     public void Selectdate(){
         DateFormat df = new SimpleDateFormat("ddMyyyy");
@@ -181,6 +204,9 @@ public class MainActivity extends AppCompatActivity {
 
           }
       });
-  }
+
+      }
+
+
 }
 
