@@ -3,14 +3,18 @@ package com.example.calender;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.DatePickerDialog;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CalendarView;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -22,7 +26,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+ import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,7 +44,13 @@ public class MainActivity extends AppCompatActivity {
     private Button button;
     private String eventdetails,Date;
     public String selectedDate;
+
+
     SQLiteDatabase sqLiteDatabase;
+    private static final String TAG = "MainActivity";
+
+    private TextView mDisplayDate;
+    private DatePickerDialog.OnDateSetListener mDateSetListener;
     private long m;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,17 +69,12 @@ public class MainActivity extends AppCompatActivity {
         calendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
             public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
-                // index is start with 0
-                Date
-                        = dayOfMonth + "-"
-                        + (month + 1) + "-" + year;
-                selectedDate = Integer.toString(year) + Integer.toString(month) + Integer.toString(dayOfMonth);
-
-                // set this date in TextView for Display
+                Date =dayOfMonth+"-"+(month+1)+"-"+year;
+                selectedDate = Integer.toString(dayOfMonth) + Integer.toString(month) + Integer.toString(year);
                 date_view.setText(Date);
                 DatabaseReference myref=FirebaseDatabase.getInstance().getReference().child("ALLEVENTS").child(selectedDate);
                 myref.addValueEventListener(new ValueEventListener() {
-                    private static final String TAG = "df";
+
 
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -81,18 +91,12 @@ public class MainActivity extends AppCompatActivity {
                         adapter.notifyDataSetChanged();
 
                     }
-
-
-
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
                         Log.w(TAG, "Failed to read value.", databaseError.toException());
 
                     }
                 });
-
-
-
             }
         });
         button.setOnClickListener(new View.OnClickListener() {
@@ -107,7 +111,47 @@ public class MainActivity extends AppCompatActivity {
                 editText.setText(" ");
             }
         });
+        mDisplayDate = (TextView) findViewById(R.id.displaydate);
+        mDisplayDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Calendar cal = Calendar.getInstance();
+                int year = cal.get(Calendar.YEAR);
+                int month = cal.get(Calendar.MONTH);
+                int day = cal.get(Calendar.DAY_OF_MONTH);
 
+                DatePickerDialog dialog = new DatePickerDialog(
+                        MainActivity.this,
+                        android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                        mDateSetListener,
+                        year,month,day);
+                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                dialog.show();
+            }
+        });
+
+        mDateSetListener = new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker datePicker, int year, int month, int day) {
+                month = month + 1;
+                Log.d(TAG, "displayDateSet: mm/dd/yyy: " + month + "/" + day + "/" + year);
+                String date = day+"-"+ month+"-"+year;
+                date_view.setText(date);
+                SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+                String dateString = date;
+                try{
+                    //formatting the dateString to convert it into a date
+                    Date df= sdf.parse(dateString);
+                    System.out.println("Given Time in milliseconds : "+df.getTime());
+                    calendarView.setDate(df.getTime());
+
+
+                }catch(ParseException e){
+                    e.printStackTrace();
+                    Toast.makeText(MainActivity.this,"Error",Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
 
     }
 
